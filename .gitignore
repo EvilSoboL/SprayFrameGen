@@ -1,0 +1,19 @@
+# PyCharm
+.idea/
+*.iml
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Generated spray series
+output/
+generated/
+series_*/
+
+# Build artifacts
+build/
+dist/
+*.spec
