@@ -5,6 +5,7 @@ from tkinter import filedialog, messagebox, ttk
 from tkinter.scrolledtext import ScrolledText
 
 from .. import __version__
+from . import InterfaceError
 from ..configuration import ConfigurationError, dumps, load, loads, new_configuration, save
 
 
@@ -68,4 +69,11 @@ def create_window() -> tk.Tk:
 
 
 def run() -> None:
-    create_window().mainloop()
+    try:
+        create_window().mainloop()
+    except tk.TclError as exc:
+        raise InterfaceError(
+            "Не удалось запустить окно настроек. Проверьте установку Python с Tcl/Tk "
+            "и доступ к интерактивному рабочему столу. "
+            "Проверить JSON без окна можно командой run.bat --check <файл>."
+        ) from exc

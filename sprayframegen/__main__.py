@@ -7,6 +7,7 @@ import sys
 
 from . import __version__
 from .configuration import ConfigurationError, load, new_configuration, save
+from .ui import InterfaceError
 
 
 def main(argv=None) -> int:
@@ -35,7 +36,7 @@ def main(argv=None) -> int:
         else:
             from .ui.app import run
             run()
-    except (ConfigurationError, OSError, UnicodeError, ImportError) as exc:
+    except (ConfigurationError, InterfaceError, OSError, UnicodeError, ImportError) as exc:
         print(f"Ошибка: {exc}", file=sys.stderr)
         return 1
     return 0
