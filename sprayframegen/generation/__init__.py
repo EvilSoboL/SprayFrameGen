@@ -18,3 +18,9 @@ def generate_initial(config: Configuration) -> tuple[Droplet, ...]:
     """Модель первого кадра; каждый вызов начинает RNG заново от seed."""
     fresh, streams = prepare(config)
     return DropletSampler(fresh, streams.model).initial_population()
+
+
+def generate_frames(config: Configuration):
+    """Ленивый итератор кадров с траекториями и геометрическими признаками."""
+    from .sequence import generate_frames as iterate
+    return iterate(config)

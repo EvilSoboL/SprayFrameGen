@@ -70,6 +70,13 @@ class DropletSampler:
 
     def sample_initial(self) -> Droplet:
         """Одна новая капля первого кадра; счётчик ID увеличивается после успеха."""
+        return self._sample(at_left=False)
+
+    def sample_replacement(self) -> Droplet:
+        """Новый ID на левой границе; фиксированный X не расходует RNG."""
+        return self._sample(at_left=True)
+
+    def _sample(self, *, at_left: bool) -> Droplet:
         c = self.config
         diameter_um = self._diameter()
         is_outlier = bool(self.rng.random() < 0.05)
@@ -85,7 +92,8 @@ class DropletSampler:
                              m.speed_max_m_s, "motion: модуль скорости, м/с")
         width, height = c.camera.width_px, c.camera.height_px
         spread = CONCENTRATION[c.droplets.concentration]
-        x = self._normal(width / 2, spread * width, 0.0, float(width), "center_x_px")
+        x = (0.0 if at_left else
+             self._normal(width / 2, spread * width, 0.0, float(width), "center_x_px"))
         y = self._normal(height / 2, spread * height, 0.0, float(height), "center_y_px")
         if c.droplets.render_mode == "realistic":
             q_left = float(self.rng.uniform(1.0, 1.35))
