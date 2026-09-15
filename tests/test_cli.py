@@ -11,7 +11,8 @@ import unittest
 from unittest.mock import patch
 
 from sprayframegen.__main__ import main
-from sprayframegen.configuration import load
+from sprayframegen.configuration import load, save
+from test_render import ideal_config
 
 
 class CommandLineTests(unittest.TestCase):
@@ -50,6 +51,28 @@ class CommandLineTests(unittest.TestCase):
             status, _, errors = self.invoke("--check", str(Path(directory) / "missing.json"))
             self.assertEqual(status, 1)
             self.assertIn("Ошибка:", errors)
+
+    def test_generate_series_from_json(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "параметры.json"
+            save(ideal_config(**{"export.output_directory": str(Path(directory).resolve())}), path)
+            status, output, errors = self.invoke("--generate", str(path))
+            self.assertEqual(status, 0)
+            self.assertIn("Серия сохранена:", output)
+            self.assertEqual(errors, "")
+            series = next(Path(directory).glob("series_*"))
+            self.assertEqual(load(series / "config.json").configuration.run.status, "completed")
+
+    def test_generate_rejects_unsupported_effects(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "параметры.json"
+            save(ideal_config(**{"motion.motion_blur_enabled": True,
+                                "export.output_directory": str(Path(directory).resolve())}), path)
+            status, output, errors = self.invoke("--generate", str(path))
+            self.assertEqual(status, 1)
+            self.assertIn("motion.motion_blur_enabled", errors)
+            self.assertNotIn("Traceback", errors)
+            self.assertEqual(list(Path(directory).glob("series_*")), [])
 
     def test_unavailable_tk_returns_actionable_error(self):
         with patch("sprayframegen.ui.app.create_window", side_effect=tk.TclError("init.tcl")):

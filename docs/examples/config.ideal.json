@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "program_version": "0.1.0",
+  "seed": 123,
+  "camera": {
+    "width_px": 640,
+    "height_px": 480,
+    "scale_um_per_px": 10.0,
+    "frame_count": 2,
+    "frame_interval_us": 100.0,
+    "exposure_us": 20.0,
+    "format": "png",
+    "bit_depth": 8
+  },
+  "droplets": {
+    "count_per_frame": 10,
+    "size_distribution": "lognormal",
+    "mean_um": 120.0,
+    "std_um": 20.0,
+    "median_um": 120.0,
+    "geometric_std": 1.35,
+    "max_diameter_um": 500.0,
+    "concentration": "medium",
+    "render_mode": "ideal"
+  },
+  "motion": {
+    "speed_mean_m_s": 8.0,
+    "speed_std_m_s": 0.8,
+    "speed_min_m_s": 4.0,
+    "speed_max_m_s": 12.0,
+    "direction_std_deg": 10.0,
+    "motion_blur_enabled": false
+  },
+  "appearance": {
+    "profile": "standard-v1",
+    "defocus_enabled": false,
+    "blur_sigma_min_px": 0.0,
+    "blur_sigma_max_px": 2.0
+  },
+  "background": {
+    "tone": "light",
+    "noise_enabled": false,
+    "noise_sigma": 0.02
+  },
+  "export": {
+    "output_directory": null
+  },
+  "run": null
+}
