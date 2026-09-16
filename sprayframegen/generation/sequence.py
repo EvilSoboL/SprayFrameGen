@@ -7,7 +7,7 @@ from ..configuration import Configuration
 from ..model import Droplet
 from ..model.sampling import DropletSampler
 from ..geometry.projections import Ellipse, crosses_border, is_active, overlap_flags
-from . import prepare
+from .core import prepare
 
 
 @dataclass(frozen=True)

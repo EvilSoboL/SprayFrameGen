@@ -9,7 +9,8 @@ from PIL import Image
 
 from ..configuration import Configuration, ConfigurationError, Run, save
 from ..environment import current_environment
-from ..generation import generate_frames, prepare
+from ..generation import generate_frames
+from ..generation.core import prepare
 from ..render import create_renderer, encode_intensity
 from .csv_data import COLUMNS, row
 
