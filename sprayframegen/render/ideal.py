@@ -47,8 +47,13 @@ def circle_layer(state: FrameDroplet, width: int, height: int, intensity: float)
 def composite(image: np.ndarray, layer: Layer) -> None:
     """P + (1-A) I; интерфейс слоя сохраняет возможность эффектов D06."""
     h, w = layer.alpha.shape
-    region = image[layer.y:layer.y + h, layer.x:layer.x + w]
-    region[:] = layer.premultiplied + (1.0 - layer.alpha) * region
+    x0, y0 = max(0, layer.x), max(0, layer.y)
+    x1, y1 = min(image.shape[1], layer.x + w), min(image.shape[0], layer.y + h)
+    if x0 >= x1 or y0 >= y1:
+        return
+    source = np.s_[y0 - layer.y:y1 - layer.y, x0 - layer.x:x1 - layer.x]
+    region = image[y0:y1, x0:x1]
+    region[:] = layer.premultiplied[source] + (1.0 - layer.alpha[source]) * region
 
 
 class IdealRenderer:
@@ -56,16 +61,13 @@ class IdealRenderer:
         self.config = from_mapping(asdict(config), compare_environment=False).configuration
         c = self.config
         if c.droplets.render_mode != "ideal":
-            raise ConfigurationError("droplets.render_mode: рендер D05 поддерживает только ideal; реалистичный режим — issue #6")
-        if c.motion.motion_blur_enabled:
-            raise ConfigurationError("motion.motion_blur_enabled: отключите размытие движения для D05; эффект — issue #6")
-        if c.appearance.defocus_enabled and c.appearance.blur_sigma_max_px > 0:
-            raise ConfigurationError("appearance.defocus_enabled: отключите расфокусировку для D05; эффект — issue #6")
-        if c.background.noise_enabled and c.background.noise_sigma > 0:
-            raise ConfigurationError("background.noise_enabled: отключите шум для D05; эффект — issue #6")
+            raise ConfigurationError("droplets.render_mode: IdealRenderer требует ideal; используйте create_renderer")
 
     def render(self, frame: Frame) -> np.ndarray:
         c = self.config
+        if c.motion.motion_blur_enabled or c.appearance.defocus_enabled or c.background.noise_enabled:
+            from .optical import OpticalRenderer
+            return OpticalRenderer(c).render(frame)
         image = np.full((c.camera.height_px, c.camera.width_px), c.background.intensity,
                         dtype=np.float64)
         intensity = 0.1 if c.background.tone == "light" else 0.9
@@ -75,7 +77,8 @@ class IdealRenderer:
 
 
 def create_renderer(config: Configuration) -> FrameRenderer:
-    return IdealRenderer(config)
+    from .optical import OpticalRenderer
+    return OpticalRenderer(config)
 
 
 def encode_intensity(image: np.ndarray, bit_depth: int) -> np.ndarray:

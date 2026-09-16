@@ -141,8 +141,7 @@ class ExportTests(unittest.TestCase):
 
     def test_invalid_settings_do_not_create_series(self):
         with tempfile.TemporaryDirectory() as directory:
-            for changes in ({"droplets.render_mode": "realistic"}, {"motion.motion_blur_enabled": True},
-                            {"export.output_directory": None},
+            for changes in ({"export.output_directory": None},
                             {"export.output_directory": str(Path(directory) / "missing")}):
                 with self.assertRaises(ConfigurationError):
                     export_series(self.config(directory, **changes))

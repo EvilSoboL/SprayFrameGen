@@ -74,13 +74,9 @@ class IdealRenderTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             encode_intensity(np.array([[np.nan]]), 8)
 
-    def test_unsupported_features_are_not_silently_ignored(self):
-        for changes in ({"droplets.render_mode": "realistic"},
-                        {"motion.motion_blur_enabled": True},
-                        {"background.noise_enabled": True},
-                        {"appearance.defocus_enabled": True}):
-            with self.assertRaisesRegex(ConfigurationError, "issue #6"):
-                IdealRenderer(ideal_config(**changes))
+    def test_ideal_renderer_requires_ideal_mode(self):
+        with self.assertRaisesRegex(ConfigurationError, "create_renderer"):
+            IdealRenderer(ideal_config(**{"droplets.render_mode": "realistic"}))
         IdealRenderer(ideal_config(**{"background.noise_enabled": True, "background.noise_sigma": 0,
                                      "appearance.defocus_enabled": True, "appearance.blur_sigma_max_px": 0}))
 
