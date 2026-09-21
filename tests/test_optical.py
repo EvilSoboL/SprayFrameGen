@@ -13,7 +13,7 @@ from sprayframegen.generation import generate_frames
 from sprayframegen.generation.sequence import Frame
 from sprayframegen.render import create_renderer, composite
 from sprayframegen.render.optical import optical_layer, temporal_sampling, gaussian_blur, gaussian_kernel
-from test_render import ideal_config, state_at
+from tests.test_render import ideal_config, state_at
 
 
 def config(**changes):

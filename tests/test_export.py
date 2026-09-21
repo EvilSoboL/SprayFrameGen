@@ -15,7 +15,7 @@ from sprayframegen.export import export_series, ExportError
 from sprayframegen.export.csv_data import COLUMNS, number, row
 from sprayframegen.generation import generate_frames
 from sprayframegen.generation.sequence import Frame
-from test_render import ideal_config, state_at
+from tests.test_render import ideal_config, state_at
 
 
 class ExportTests(unittest.TestCase):

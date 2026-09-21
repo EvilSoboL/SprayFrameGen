@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 from sprayframegen.__main__ import main
 from sprayframegen.configuration import load, save
-from test_render import ideal_config
+from tests.test_render import ideal_config
 
 
 class CommandLineTests(unittest.TestCase):
@@ -74,7 +74,7 @@ class CommandLineTests(unittest.TestCase):
             self.assertEqual(len(list(Path(directory).glob("series_*"))), 1)
 
     def test_unavailable_tk_returns_actionable_error(self):
-        with patch("sprayframegen.ui.app.create_window", side_effect=tk.TclError("init.tcl")):
+        with patch("tkinter.Tk", side_effect=tk.TclError("init.tcl")):
             status, _, errors = self.invoke()
         self.assertEqual(status, 1)
         self.assertIn("Tcl/Tk", errors)
