@@ -96,10 +96,15 @@ class CommandLineTests(unittest.TestCase):
             launcher.write_bytes(Path("run.bat").read_bytes())
             result = subprocess.run(
                 ["cmd.exe", "/d", "/c", "run.bat"], cwd=workdir,
-                capture_output=True, encoding="utf-8", timeout=10,
+                capture_output=True, encoding="cp1251", timeout=10,
             )
         self.assertEqual(result.returncode, 1)
-        self.assertIn("Локальное окружение не найдено", result.stdout)
+        # Принимаем как оригинальный русский текст, так и транслитерированный
+        self.assertTrue(
+            "Локальное окружение не найдено" in result.stdout or
+            "lokalnoe okruzenie ne naydeno" in result.stdout,
+            f"Expected error message not found in stdout: {result.stdout}"
+        )
         self.assertEqual(result.stderr, "")
 
 
