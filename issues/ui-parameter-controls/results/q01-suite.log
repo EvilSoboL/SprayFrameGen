@@ -1,0 +1,16 @@
+test_all_formats (test_acceptance.AcceptanceTests.test_all_formats) ... ok
+test_all_resolutions (test_acceptance.AcceptanceTests.test_all_resolutions) ... ok
+test_border_flag (test_acceptance.AcceptanceTests.test_border_flag) ... ok
+test_cancellation_preserves_files (test_acceptance.AcceptanceTests.test_cancellation_preserves_files) ... ok
+test_clean_export_no_annotations (test_acceptance.AcceptanceTests.test_clean_export_no_annotations) ... ok
+test_config_json_roundtrip (test_acceptance.AcceptanceTests.test_config_json_roundtrip) ... ok
+test_equivalent_diameter_accuracy (test_acceptance.AcceptanceTests.test_equivalent_diameter_accuracy) ... ok
+test_exact_droplet_count_per_frame (test_acceptance.AcceptanceTests.test_exact_droplet_count_per_frame) ... ok
+test_id_persistence_and_uniqueness (test_acceptance.AcceptanceTests.test_id_persistence_and_uniqueness) ... ok
+test_minimum_diameter_3px (test_acceptance.AcceptanceTests.test_minimum_diameter_3px) ... ok
+test_motion_blur_length (test_acceptance.AcceptanceTests.test_motion_blur_length) ... ok
+test_noise_changes_between_frames (test_acceptance.AcceptanceTests.test_noise_changes_between_frames) ... ok
+test_noise_switch_preserves_csv (test_acceptance.AcceptanceTests.test_noise_switch_preserves_csv)
+Переключение шума не меняет CSV. ... ok
+test_overlap_flag (test_acceptance.AcceptanceTests.test_overlap_flag) ... ok
+test_range_10000_droplets (test_acceptance.AcceptanceTests.test_range_10000_droplets) ... 

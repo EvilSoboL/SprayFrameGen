@@ -1,0 +1,115 @@
+test_create_and_check_unicode_path (test_cli.CommandLineTests.test_create_and_check_unicode_path) ... ok
+test_generate_series_from_json (test_cli.CommandLineTests.test_generate_series_from_json) ... ok
+test_generate_with_optical_effects (test_cli.CommandLineTests.test_generate_with_optical_effects) ... ok
+test_import_failure_returns_error (test_cli.CommandLineTests.test_import_failure_returns_error) ... ok
+test_invalid_config_returns_error_and_field (test_cli.CommandLineTests.test_invalid_config_returns_error_and_field) ... ok
+test_launcher_missing_environment_in_unicode_directory (test_cli.CommandLineTests.test_launcher_missing_environment_in_unicode_directory) ... ok
+test_missing_file_returns_error (test_cli.CommandLineTests.test_missing_file_returns_error) ... ok
+test_unavailable_tk_returns_actionable_error (test_cli.CommandLineTests.test_unavailable_tk_returns_actionable_error) ... ok
+test_defaults_match_contract (test_configuration.ConfigurationTests.test_defaults_match_contract) ... ok
+test_defocus_mode_switch_and_equal_bounds (test_configuration.ConfigurationTests.test_defocus_mode_switch_and_equal_bounds) ... ok
+test_degenerate_distributions (test_configuration.ConfigurationTests.test_degenerate_distributions) ... ok
+test_derived_overflow (test_configuration.ConfigurationTests.test_derived_overflow) ... ok
+test_invalid_ranges (test_configuration.ConfigurationTests.test_invalid_ranges) ... ok
+test_missing_every_required_field (test_configuration.ConfigurationTests.test_missing_every_required_field) ... ok
+test_numeric_types_and_finiteness (test_configuration.ConfigurationTests.test_numeric_types_and_finiteness) ... ok
+test_paths_and_json_errors (test_configuration.ConfigurationTests.test_paths_and_json_errors) ... ok
+test_resolutions_and_formats (test_configuration.ConfigurationTests.test_resolutions_and_formats) ... ok
+test_roundtrip_all_parameters_and_inactive_settings (test_configuration.ConfigurationTests.test_roundtrip_all_parameters_and_inactive_settings) ... ok
+test_saving_writes_actual_version (test_configuration.ConfigurationTests.test_saving_writes_actual_version) ... ok
+test_schema_and_profiles (test_configuration.ConfigurationTests.test_schema_and_profiles) ... ok
+test_seed_and_integer_bounds (test_configuration.ConfigurationTests.test_seed_and_integer_bounds) ... ok
+test_seed_generated_only_for_new_configuration (test_configuration.ConfigurationTests.test_seed_generated_only_for_new_configuration) ... ok
+test_unknown_fields_warn_and_are_removed (test_configuration.ConfigurationTests.test_unknown_fields_warn_and_are_removed) ... ok
+test_ideal_mode_with_effects_completes (test_controller.ControllerIntegrationTests.test_ideal_mode_with_effects_completes) ... ok
+test_realistic_mode_completes (test_controller.ControllerIntegrationTests.test_realistic_mode_completes) ... ok
+test_cancellation_before_first_frame (test_controller.ControllerTests.test_cancellation_before_first_frame) ... ok
+test_cancellation_between_frames (test_controller.ControllerTests.test_cancellation_between_frames) ... ok
+test_cancellation_does_not_corrupt_completed_frames (test_controller.ControllerTests.test_cancellation_does_not_corrupt_completed_frames)
+При отмене уже готовые кадры и CSV не повреждаются. ... ok
+test_cancellation_via_token_in_thread (test_controller.ControllerTests.test_cancellation_via_token_in_thread) ... ok
+test_csv_rollback_on_image_write_failure (test_controller.ControllerTests.test_csv_rollback_on_image_write_failure)
+При ошибке записи изображения CSV откатывается к предыдущему состоянию. ... ok
+test_disk_space_check_fails_when_insufficient (test_controller.ControllerTests.test_disk_space_check_fails_when_insufficient) ... ok
+test_error_during_write_sets_error_status (test_controller.ControllerTests.test_error_during_write_sets_error_status)
+Ошибка записи изображения устанавливает status=error. ... ok
+test_estimate_series_size_returns_positive (test_controller.ControllerTests.test_estimate_series_size_returns_positive) ... ok
+test_generation_completes_with_progress_events (test_controller.ControllerTests.test_generation_completes_with_progress_events) ... ok
+test_progress_callback_receives_correct_elapsed_time (test_controller.ControllerTests.test_progress_callback_receives_correct_elapsed_time) ... ok
+test_run_generation_in_thread_returns_thread_and_token (test_controller.ControllerTests.test_run_generation_in_thread_returns_thread_and_token) ... ok
+test_write_permission_check_fails_when_no_permission (test_controller.ControllerTests.test_write_permission_check_fails_when_no_permission) ... ok
+test_concentration_truncated_normal_and_coordinate_independence (test_droplet_generation.DropletGenerationTests.test_concentration_truncated_normal_and_coordinate_independence) ... ok
+test_fixed_distributions_and_ideal_defocus (test_droplet_generation.DropletGenerationTests.test_fixed_distributions_and_ideal_defocus) ... ok
+test_invalid_configuration_before_rng (test_droplet_generation.DropletGenerationTests.test_invalid_configuration_before_rng) ... ok
+test_open_outlier_interval (test_droplet_generation.DropletGenerationTests.test_open_outlier_interval) ... ok
+test_ranges_components_and_area (test_droplet_generation.DropletGenerationTests.test_ranges_components_and_area) ... ok
+test_rejection_limit_last_success_and_no_clipping (test_droplet_generation.DropletGenerationTests.test_rejection_limit_last_success_and_no_clipping) ... ok
+test_repeat_seed_preview_noise_and_ids (test_droplet_generation.DropletGenerationTests.test_repeat_seed_preview_noise_and_ids) ... ok
+test_sampler_rejection_for_each_distribution (test_droplet_generation.DropletGenerationTests.test_sampler_rejection_for_each_distribution) ... ok
+test_seed_123_sampling_order_regression (test_droplet_generation.DropletGenerationTests.test_seed_123_sampling_order_regression) ... ok
+test_size_speed_and_angles_statistics (test_droplet_generation.DropletGenerationTests.test_size_speed_and_angles_statistics) ... ok
+test_unreachable_distribution_reports_error (test_droplet_generation.DropletGenerationTests.test_unreachable_distribution_reports_error) ... ok
+test_all_resolutions_formats_and_readback (test_export.ExportTests.test_all_resolutions_formats_and_readback) ... ok
+test_collision_uses_first_free_suffix_without_overwrite (test_export.ExportTests.test_collision_uses_first_free_suffix_without_overwrite) ... ok
+test_csv_matches_every_model_field_and_metadata (test_export.ExportTests.test_csv_matches_every_model_field_and_metadata) ... ok
+test_export_commits_each_frame_before_requesting_next (test_export.ExportTests.test_export_commits_each_frame_before_requesting_next) ... ok
+test_fully_hidden_droplet_has_its_own_csv_row (test_export.ExportTests.test_fully_hidden_droplet_has_its_own_csv_row) ... ok
+test_image_write_error_keeps_only_completed_frame (test_export.ExportTests.test_image_write_error_keeps_only_completed_frame) ... ok
+test_invalid_settings_do_not_create_series (test_export.ExportTests.test_invalid_settings_do_not_create_series) ... ok
+test_reference_row_and_negative_zero (test_export.ExportTests.test_reference_row_and_negative_zero) ... ok
+test_replay_json_is_byte_identical_for_all_formats (test_export.ExportTests.test_replay_json_is_byte_identical_for_all_formats) ... ok
+test_circle_overlap_tangency_containment_and_coincidence (test_geometry.GeometryTests.test_circle_overlap_tangency_containment_and_coincidence) ... ok
+test_corner_bbox_is_not_sufficient (test_geometry.GeometryTests.test_corner_bbox_is_not_sufficient) ... ok
+test_current_axes_affect_border_and_overlap (test_geometry.GeometryTests.test_current_axes_affect_border_and_overlap) ... ok
+test_four_sides_inside_partial_and_external_tangency (test_geometry.GeometryTests.test_four_sides_inside_partial_and_external_tangency) ... ok
+test_grid_matches_all_pairs_for_rotated_clipped_ellipses (test_geometry.GeometryTests.test_grid_matches_all_pairs_for_rotated_clipped_ellipses) ... ok
+test_huge_ellipses_cover_frame (test_geometry.GeometryTests.test_huge_ellipses_cover_frame) ... ok
+test_overlap_only_outside_frame (test_geometry.GeometryTests.test_overlap_only_outside_frame) ... ok
+test_random_circles_against_analytic_distance (test_geometry.GeometryTests.test_random_circles_against_analytic_distance) ... ok
+test_rotated_corner_and_containment (test_geometry.GeometryTests.test_rotated_corner_and_containment) ... ok
+test_rotated_ellipse_tangent_and_small_penetration (test_geometry.GeometryTests.test_rotated_ellipse_tangent_and_small_penetration) ... ok
+test_rotated_ellipses_common_area_only_outside (test_geometry.GeometryTests.test_rotated_ellipses_common_area_only_outside) ... ok
+test_spatial_search_avoids_all_pairs (test_geometry.GeometryTests.test_spatial_search_avoids_all_pairs) ... ok
+test_defocus_uses_geometry_outside_image (test_optical.OpticalTests.test_defocus_uses_geometry_outside_image) ... ok
+test_exposure_ignored_with_motion_disabled_in_both_modes (test_optical.OpticalTests.test_exposure_ignored_with_motion_disabled_in_both_modes) ... ok
+test_four_ideal_effect_combinations_and_csv_sigma (test_optical.OpticalTests.test_four_ideal_effect_combinations_and_csv_sigma) ... ok
+test_full_coverage_brightness_is_preserved_with_11_time_samples (test_optical.OpticalTests.test_full_coverage_brightness_is_preserved_with_11_time_samples) ... ok
+test_gaussian_kernel_and_separable_impulse (test_optical.OpticalTests.test_gaussian_kernel_and_separable_impulse) ... ok
+test_id_order_with_transparent_interior_and_opaque_rim (test_optical.OpticalTests.test_id_order_with_transparent_interior_and_opaque_rim) ... ok
+test_motion_length_and_symmetric_mid_exposure (test_optical.OpticalTests.test_motion_length_and_symmetric_mid_exposure) ... ok
+test_noise_after_composition_and_repeat_random_access (test_optical.OpticalTests.test_noise_after_composition_and_repeat_random_access) ... ok
+test_profile_and_opposite_polarities_before_quantization (test_optical.OpticalTests.test_profile_and_opposite_polarities_before_quantization) ... ok
+test_realistic_replay_all_codecs_noise_independent_csv (test_optical.OpticalTests.test_realistic_replay_all_codecs_noise_independent_csv) ... ok
+test_rotated_profile_against_scalar_samples (test_optical.OpticalTests.test_rotated_profile_against_scalar_samples) ... ok
+test_time_averages_shape_at_each_position_including_outside (test_optical.OpticalTests.test_time_averages_shape_at_each_position_including_outside) ... ok
+test_uniform_background_both_tones (test_optical.OpticalTests.test_uniform_background_both_tones) ... ok
+test_interval_roundtrip_and_precision (test_parameter_units.ParameterUnitTests.test_interval_roundtrip_and_precision) ... ok
+test_invalid_and_underflow_values_are_rejected (test_parameter_units.ParameterUnitTests.test_invalid_and_underflow_values_are_rejected) ... ok
+test_size_roundtrip_and_speed_examples (test_parameter_units.ParameterUnitTests.test_size_roundtrip_and_speed_examples) ... ok
+test_4x4_against_scalar_subpixel_reference_and_clipping (test_render.IdealRenderTests.test_4x4_against_scalar_subpixel_reference_and_clipping) ... ok
+test_brightness_polarity_and_no_annotations (test_render.IdealRenderTests.test_brightness_polarity_and_no_annotations) ... ok
+test_composition_uses_averaged_layer_alpha (test_render.IdealRenderTests.test_composition_uses_averaged_layer_alpha) ... ok
+test_exposure_disabled_and_huge_radius (test_render.IdealRenderTests.test_exposure_disabled_and_huge_radius) ... ok
+test_ideal_renderer_requires_ideal_mode (test_render.IdealRenderTests.test_ideal_renderer_requires_ideal_mode) ... ok
+test_quantization_clipping_and_half_up (test_render.IdealRenderTests.test_quantization_clipping_and_half_up) ... ok
+test_environment_comparison (test_runtime.RuntimeTests.test_environment_comparison) ... ok
+test_invalid_metadata (test_runtime.RuntimeTests.test_invalid_metadata) ... ok
+test_metadata_roundtrip_and_restart (test_runtime.RuntimeTests.test_metadata_roundtrip_and_restart) ... ok
+test_missing_metadata_fields (test_runtime.RuntimeTests.test_missing_metadata_fields) ... ok
+test_model_and_noise_are_independent (test_runtime.RuntimeTests.test_model_and_noise_are_independent) ... ok
+test_preview_does_not_consume_export (test_runtime.RuntimeTests.test_preview_does_not_consume_export) ... ok
+test_selected_codecs_preserve_single_channel_values (test_runtime.RuntimeTests.test_selected_codecs_preserve_single_channel_values) ... ok
+test_1000_frames_unique_ids_and_coordinate_accuracy (test_sequence.SequenceTests.test_1000_frames_unique_ids_and_coordinate_accuracy) ... ok
+test_coincident_droplets_remain_separate (test_sequence.SequenceTests.test_coincident_droplets_remain_separate) ... ok
+test_mass_exit_maximum_population_ids_and_both_groups (test_sequence.SequenceTests.test_mass_exit_maximum_population_ids_and_both_groups) ... ok
+test_partial_survives_then_external_tangent_replaced (test_sequence.SequenceTests.test_partial_survives_then_external_tangent_replaced) ... ok
+test_reference_motion_and_all_invariant_fields (test_sequence.SequenceTests.test_reference_motion_and_all_invariant_fields) ... ok
+test_replacement_y_concentrations (test_sequence.SequenceTests.test_replacement_y_concentrations) ... ok
+test_series_repeat_after_partial_preview_and_noise_switch (test_sequence.SequenceTests.test_series_repeat_after_partial_preview_and_noise_switch) ... ok
+test_top_bottom_right_exit_and_survivor_unchanged (test_sequence.SequenceTests.test_top_bottom_right_exit_and_survivor_unchanged) ... ok
+test_zero_speed_rejected (test_sequence.SequenceTests.test_zero_speed_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 107 tests in 24.798s
+
+OK

@@ -1,5 +1,6 @@
 """Полный интерфейс настроек, предпросмотра и экспорта."""
 
+import copy
 import json
 import threading
 import time
@@ -36,6 +37,16 @@ from ..generation.controller import (
     run_generation,
 )
 from ..render import create_renderer, encode_intensity
+from .parameter_units import (
+    format_editable, format_reference, hz_to_interval_us, interval_us_to_hz,
+    micrometers_to_pixels, parse_number, pixels_to_micrometers,
+    speed_to_pixels_per_frame,
+)
+
+
+DIAMETER_PATHS = (
+    "droplets.mean_um", "droplets.std_um", "droplets.median_um", "droplets.max_diameter_um",
+)
 
 
 RESOLUTIONS = [(640, 480), (1024, 768), (1280, 1024), (1920, 1080)]
@@ -66,6 +77,15 @@ class SettingsWindow:
 
         self.vars: dict[str, tk.Variable] = {}
         self.widgets: dict[str, tk.Widget] = {}
+        self.labels: dict[str, ttk.Label] = {}
+        self.float_paths: set[str] = set()
+        self.float_bounds: dict[str, tuple[float, float]] = {}
+        self._loading_vars = False
+        self._rendered_text: dict[str, str] = {}
+        self._draft_data = None
+        self.interval_unit = "us"
+        self.diameter_unit = "um"
+        self._preview_is_stale = False
 
         self._build_ui()
         self._reset_config("realistic")
@@ -130,8 +150,17 @@ class SettingsWindow:
                           [f"{w}×{h}" for w, h in RESOLUTIONS],
                           path2="camera.height_px")
         self._add_int(f, "camera.frame_count", "Число кадров", 1, 2, 1000)
-        self._add_float(f, "camera.scale_um_per_px", "Масштаб (мкм/пиксель)", 2, 0.1, 1000.0)
-        self._add_float(f, "camera.frame_interval_us", "Межкадровый интервал (мкс)", 3, 0.1, 100000.0)
+        self.scale_label = ttk.Label(f, text="Масштаб (мкм/пиксель)")
+        self.scale_label.grid(row=2, column=0, sticky="w", padx=5, pady=3)
+        self._add_float(f, "camera.scale_um_per_px", "", 2, 0.1, 1000.0)
+        self.interval_label = ttk.Label(f, text="Межкадровый интервал (мкс)")
+        self.interval_label.grid(row=3, column=0, sticky="w", padx=5, pady=3)
+        self._add_float(f, "camera.frame_interval_us", "", 3, 0.1, 100000.0)
+        self.interval_unit_var = tk.StringVar(value="мкс")
+        self.interval_unit_combo = ttk.Combobox(f, textvariable=self.interval_unit_var,
+            values=("мкс", "Гц"), state="readonly", width=7)
+        self.interval_unit_combo.grid(row=3, column=2, padx=4)
+        self.interval_unit_combo.bind("<<ComboboxSelected>>", self._change_interval_unit)
         self._add_float(f, "camera.exposure_us", "Выдержка (мкс)", 4, 0.1, 100000.0)
         self._add_combobox(f, "camera.format", "Формат и разрядность", 5,
                           [label for label, _, _ in FORMAT_BITDEPTH],
@@ -149,6 +178,13 @@ class SettingsWindow:
         self._add_float(f, "droplets.median_um", "Медиана (мкм, для логнормального)", 4, 1.0, 5000.0)
         self._add_float(f, "droplets.geometric_std", "Геом. стд. отклонение (для логнормального)", 5, 1.0, 10.0)
         self._add_float(f, "droplets.max_diameter_um", "Макс. диаметр (мкм)", 6, 1.0, 5000.0)
+        self.diameter_unit_var = tk.StringVar(value="мкм")
+        self.diameter_unit_combo = ttk.Combobox(f, textvariable=self.diameter_unit_var,
+            values=("мкм", "пикс"), state="readonly", width=7)
+        self.diameter_unit_combo.grid(row=9, column=2, padx=4)
+        self.diameter_unit_combo.bind("<<ComboboxSelected>>", self._change_diameter_unit)
+        self.diameter_help = ttk.Label(f, text="Эквивалентный диаметр до размытия. При смене масштаба размеры в мкм сохраняются.", wraplength=460)
+        self.diameter_help.grid(row=10, column=0, columnspan=3, sticky="w", padx=5, pady=3)
         self._add_combobox(f, "droplets.concentration", "Концентрация", 7,
                           [label for label, _ in CONCENTRATIONS],
                           lambda v: CONCENTRATIONS[v.current()][1])
@@ -159,6 +195,10 @@ class SettingsWindow:
     def _build_tab_motion(self):
         f = self.tab_motion
         self._add_float(f, "motion.speed_mean_m_s", "Средняя скорость (м/с)", 0, 0.1, 100.0)
+        self.speed_pixels_var = tk.StringVar(value="—")
+        ttk.Label(f, text="Средняя скорость (пикс/кадр)").grid(row=6, column=0, sticky="w", padx=5, pady=3)
+        ttk.Label(f, textvariable=self.speed_pixels_var).grid(row=6, column=1, sticky="w", padx=5, pady=3)
+        ttk.Label(f, text="Пересчёт заданной средней скорости").grid(row=7, column=0, columnspan=2, sticky="w", padx=5)
         self._add_float(f, "motion.speed_std_m_s", "Стд. отклонение скорости (м/с)", 1, 0.0, 50.0)
         self._add_float(f, "motion.speed_min_m_s", "Мин. скорость (м/с)", 2, 0.1, 100.0)
         self._add_float(f, "motion.speed_max_m_s", "Макс. скорость (м/с)", 3, 0.1, 100.0)
@@ -245,10 +285,16 @@ class SettingsWindow:
         parent.columnconfigure(1, weight=1)
 
     def _add_float(self, parent, path, label, row, min_val, max_val):
-        var = tk.DoubleVar()
+        var = tk.StringVar()
         self.vars[path] = var
-        ttk.Label(parent, text=label).grid(row=row, column=0, sticky="w", padx=5, pady=3)
+        self.float_paths.add(path)
+        self.float_bounds[path] = (min_val, max_val)
+        label_widget = ttk.Label(parent, text=label)
+        if label:
+            label_widget.grid(row=row, column=0, sticky="w", padx=5, pady=3)
         spin = ttk.Spinbox(parent, from_=min_val, to=max_val, textvariable=var, width=20, increment=0.1)
+        self.widgets[path] = spin
+        self.labels[path] = label_widget
         spin.grid(row=row, column=1, sticky="ew", padx=5, pady=3)
         var.trace_add("write", lambda *_: self._on_field_change(path))
         parent.columnconfigure(1, weight=1)
@@ -276,11 +322,15 @@ class SettingsWindow:
                        command=lambda: self._on_field_change(path)).grid(row=row, column=0, columnspan=2, sticky="w", padx=5, pady=3)
 
     def _on_field_change(self, path: str):
+        if self._loading_vars:
+            return
         try:
-            self._update_config_from_vars()
+            self._update_config_from_vars(changed_path=path)
+            self._clear_preview_error()
             self._update_preview()
-        except Exception:
-            pass
+            self._update_reference_speed()
+        except (ConfigurationError, ValueError, OverflowError) as exc:
+            self._set_draft_error(path, exc)
 
     def _on_combobox_change(self, path1: str, path2: str, getter):
         try:
@@ -302,12 +352,14 @@ class SettingsWindow:
 
     def _reset_config(self, render_mode: str):
         self.config = new_configuration(render_mode=render_mode)
+        self._draft_data = asdict(self.config)
         self._vars_from_config()
         self._update_preview()
 
     def _vars_from_config(self):
         if not self.config:
             return
+        self._loading_vars = True
         data = asdict(self.config)
         for path, var in self.vars.items():
             try:
@@ -318,10 +370,15 @@ class SettingsWindow:
                     var.set(bool(value))
                 elif isinstance(var, tk.IntVar):
                     var.set(int(value))
-                elif isinstance(var, tk.DoubleVar):
-                    var.set(float(value))
+                elif path in self.float_paths:
+                    display = self._display_float(path, value, data["camera"]["scale_um_per_px"])
+                    text = format_editable(display)
+                    var.set(text)
+                    self._rendered_text[path] = text
                 elif isinstance(var, tk.StringVar):
-                    if path == "camera.width_px":
+                    if path == "export.output_directory":
+                        var.set("" if value is None else str(value))
+                    elif path == "camera.width_px":
                         w, h = value, data["camera"]["height_px"]
                         var.set(f"{w}×{h}")
                     elif path == "camera.format":
@@ -356,25 +413,48 @@ class SettingsWindow:
                         var.set(str(value))
             except (KeyError, TypeError):
                 pass
+        self._loading_vars = False
+        if hasattr(self, "interval_unit_var"):
+            self.interval_unit_var.set("Гц" if self.interval_unit == "hz" else "мкс")
+            self.diameter_unit_var.set("пикс" if self.diameter_unit == "px" else "мкм")
+        self._clear_preview_error()
+        self._update_unit_labels()
+        self._update_reference_speed()
 
-    def _update_config_from_vars(self):
+    def _update_config_from_vars(self, changed_path: str | None = None, *, validate: bool = True):
         if not self.config:
             return
-        data = asdict(self.config)
+        data = self._draft_data.copy() if self._draft_data else asdict(self.config)
+        # Nested structures are copied before edits so a failed candidate is atomic.
+        data = copy.deepcopy(data)
+        rendered_text = dict(self._rendered_text)
         for path, var in self.vars.items():
-            try:
-                value = var.get()
-                parts = path.split(".")
-                target = data
-                for part in parts[:-1]:
-                    target = target[part]
-                if isinstance(var, tk.BooleanVar):
-                    target[parts[-1]] = bool(value)
-                elif isinstance(var, tk.IntVar):
-                    target[parts[-1]] = int(value)
-                elif isinstance(var, tk.DoubleVar):
-                    target[parts[-1]] = float(value)
-                elif isinstance(var, tk.StringVar):
+            value = var.get()
+            parts = path.split(".")
+            target = data
+            for part in parts[:-1]:
+                target = target[part]
+            if path in self.float_paths:
+                text = str(value)
+                if not text.strip():
+                    raise ValueError(f"{path}: введите число")
+                if text != self._rendered_text.get(path):
+                    parsed = parse_number(text, path)
+                    if path == "camera.frame_interval_us" and self.interval_unit == "hz":
+                        parsed = hz_to_interval_us(parsed)
+                    elif path in DIAMETER_PATHS and self.diameter_unit == "px":
+                        # The scale text is interpreted after diameter drafts, against the prior scale.
+                        scale = data["camera"]["scale_um_per_px"]
+                        if changed_path == "camera.scale_um_per_px":
+                            scale = self._draft_data["camera"]["scale_um_per_px"]
+                        parsed = pixels_to_micrometers(parsed, scale)
+                    target[parts[-1]] = parsed
+                    rendered_text[path] = text
+            elif isinstance(var, tk.BooleanVar):
+                target[parts[-1]] = bool(value)
+            elif isinstance(var, tk.IntVar):
+                target[parts[-1]] = int(value)
+            elif isinstance(var, tk.StringVar):
                     if path == "camera.width_px":
                         if value:
                             w, h = map(int, value.split("×"))
@@ -406,14 +486,168 @@ class SettingsWindow:
                             if label == value:
                                 target[parts[-1]] = v
                                 break
+                    elif path in self.float_paths:
+                        pass
+                    elif path == "export.output_directory":
+                        target[parts[-1]] = value or None
                     else:
                         target[parts[-1]] = value
-            except (KeyError, TypeError, ValueError):
-                pass
-        result = from_mapping(data)
-        self.config = result.configuration
-        for w in result.warnings:
-            self.status_var.set(f"Предупреждение: {w}")
+        result = from_mapping(data) if validate else None
+        if result:
+            # A valid physical configuration must also fit the selected UI units.
+            # Reject overflow before committing or suppressing field callbacks.
+            for field in self.float_paths:
+                value = data
+                for part in field.split("."):
+                    value = value[part]
+                self._display_float(field, value, data["camera"]["scale_um_per_px"])
+        scale_changed = result is not None and (
+            result.configuration.camera.scale_um_per_px != self.config.camera.scale_um_per_px
+        )
+        if result:
+            self.config = result.configuration
+        self._draft_data = data
+        self._rendered_text = rendered_text
+        if scale_changed:
+            # A different field can make a previously invalid scale acceptable.
+            # Refresh its dependent views on every successful commit path.
+            self._render_float_draft()
+        if result:
+            for w in result.warnings:
+                self.status_var.set(f"Предупреждение: {w}")
+
+    def _display_float(self, path, value, scale):
+        display = float(value)
+        if path == "camera.frame_interval_us" and self.interval_unit == "hz":
+            return interval_us_to_hz(display)
+        if path in DIAMETER_PATHS and self.diameter_unit == "px":
+            return micrometers_to_pixels(display, scale)
+        return display
+
+    def _render_float_draft(self):
+        if not self._draft_data:
+            return
+        self._loading_vars = True
+        for path in self.float_paths:
+            value = self._draft_data
+            for part in path.split("."):
+                value = value[part]
+            display = self._display_float(path, value, self._draft_data["camera"]["scale_um_per_px"])
+            rendered = format_editable(display)
+            self.vars[path].set(rendered)
+            self._rendered_text[path] = rendered
+        self._loading_vars = False
+        self._update_unit_labels()
+
+    def _update_unit_labels(self):
+        interval = "Частота кадров (Гц)" if self.interval_unit == "hz" else "Межкадровый интервал (мкс)"
+        self.interval_label.configure(text=interval)
+        interval_min, interval_max = self.float_bounds["camera.frame_interval_us"]
+        if self.interval_unit == "hz":
+            self.widgets["camera.frame_interval_us"].configure(
+                from_=1_000_000 / interval_max, to=1_000_000 / interval_min)
+        else:
+            self.widgets["camera.frame_interval_us"].configure(from_=interval_min, to=interval_max)
+        unit = "пикс" if self.diameter_unit == "px" else "мкм"
+        names = {
+            "droplets.mean_um": f"Среднее ({unit}, для нормального)",
+            "droplets.std_um": f"Стд. отклонение ({unit}, для нормального)",
+            "droplets.median_um": f"Медиана ({unit}, для логнормального)",
+            "droplets.max_diameter_um": f"Макс. диаметр ({unit})",
+        }
+        for path, label in names.items():
+            self.labels[path].configure(text=label)
+            low, high = self.float_bounds[path]
+            if self.diameter_unit == "px":
+                scale = self._draft_data["camera"]["scale_um_per_px"] if self._draft_data else self.config.camera.scale_um_per_px
+                low, high = low / scale, high / scale
+            self.widgets[path].configure(from_=low, to=high)
+
+    def _update_reference_speed(self):
+        try:
+            if self._draft_data is None or not self.config:
+                self.speed_pixels_var.set("—")
+                return
+            value = speed_to_pixels_per_frame(
+                self._draft_data["motion"]["speed_mean_m_s"],
+                self._draft_data["camera"]["frame_interval_us"],
+                self._draft_data["camera"]["scale_um_per_px"],
+            )
+            self.speed_pixels_var.set(format_reference(value))
+        except (ValueError, OverflowError):
+            self.speed_pixels_var.set("—")
+
+    def _set_draft_error(self, path: str, exc: Exception):
+        self.speed_pixels_var.set("—")
+        message = str(exc)
+        matched_path = next((item for item in self.float_paths if item in message), None)
+        if matched_path:
+            path = matched_path
+        field = self.labels[path].cget("text") if path in self.labels else path
+        if path == "camera.frame_interval_us":
+            field = self.interval_label.cget("text")
+        elif path == "camera.scale_um_per_px":
+            field = self.scale_label.cget("text")
+        elif path == "droplets":
+            field = "Параметры капель"
+        self.status_var.set(f"Ошибка черновика — {field}: {message}")
+        if not self._preview_is_stale:
+            self._preview_is_stale = True
+            self.preview_canvas.create_text(10, 10, anchor="nw",
+                text="Предпросмотр по последним корректным настройкам", fill="yellow", tags="draft-error")
+
+    def _clear_preview_error(self):
+        self._preview_is_stale = False
+        if hasattr(self, "preview_canvas"):
+            self.preview_canvas.delete("draft-error")
+        if hasattr(self, "status_var"):
+            self.status_var.set("Готово")
+
+    def _change_interval_unit(self, _event=None):
+        requested = "hz" if self.interval_unit_var.get() == "Гц" else "us"
+        if requested == self.interval_unit:
+            return
+        previous = self.interval_unit
+        try:
+            self._update_config_from_vars(validate=False)
+            self.interval_unit = requested
+            self._render_float_draft()
+            try:
+                self._update_config_from_vars()
+                self._clear_preview_error()
+                self._update_preview()
+            except (ConfigurationError, ValueError, OverflowError) as exc:
+                self._set_draft_error("camera.frame_interval_us", exc)
+        except (ConfigurationError, ValueError, OverflowError) as exc:
+            changed = self.interval_unit != previous
+            self.interval_unit = previous
+            self.interval_unit_var.set("Гц" if previous == "hz" else "мкс")
+            if changed and self._draft_data:
+                self._render_float_draft()
+            self._set_draft_error("camera.frame_interval_us", exc)
+
+    def _change_diameter_unit(self, _event=None):
+        requested = "px" if self.diameter_unit_var.get() == "пикс" else "um"
+        if requested == self.diameter_unit:
+            return
+        previous = self.diameter_unit
+        try:
+            self._update_config_from_vars(validate=False)
+            self.diameter_unit = requested
+            self._render_float_draft()
+            try:
+                self._update_config_from_vars()
+                self._clear_preview_error()
+                self._update_preview()
+            except (ConfigurationError, ValueError, OverflowError) as exc:
+                self._set_draft_error("droplets", exc)
+        except (ConfigurationError, ValueError, OverflowError) as exc:
+            changed = self.diameter_unit != previous
+            self.diameter_unit = previous
+            self.diameter_unit_var.set("пикс" if previous == "px" else "мкм")
+            if changed and self._draft_data:
+                self._render_float_draft()
+            self._set_draft_error("droplets", exc)
 
     def _new_seed(self):
         import secrets
@@ -432,14 +666,24 @@ class SettingsWindow:
         if path:
             try:
                 result = load(path)
-                self.config = result.configuration
-                self._vars_from_config()
-                self._update_preview()
-                self.status_var.set("Настройки загружены. " + " ".join(result.warnings))
-                if result.warnings:
-                    messagebox.showwarning("Предупреждения", "\n".join(result.warnings), parent=self.root)
-            except (ConfigurationError, OSError, UnicodeError) as exc:
+                data = asdict(result.configuration)
+                # Check the selected representation before touching any live state.
+                # Even valid physical values can overflow in pixels or Hz.
+                for field in self.float_paths:
+                    value = data
+                    for part in field.split("."):
+                        value = value[part]
+                    self._display_float(field, value, data["camera"]["scale_um_per_px"])
+            except (ConfigurationError, OSError, UnicodeError, ValueError, OverflowError) as exc:
                 messagebox.showerror("Ошибка загрузки", str(exc), parent=self.root)
+                return
+            self.config = result.configuration
+            self._draft_data = data
+            self._vars_from_config()
+            self._update_preview()
+            self.status_var.set("Настройки загружены. " + " ".join(result.warnings))
+            if result.warnings:
+                messagebox.showwarning("Предупреждения", "\n".join(result.warnings), parent=self.root)
 
     def _save_file(self):
         try:
@@ -449,8 +693,9 @@ class SettingsWindow:
             if path:
                 save(self.config, path)
                 self.status_var.set(f"Настройки сохранены: {path}")
-        except (ConfigurationError, OSError, UnicodeError) as exc:
-            messagebox.showerror("Ошибка сохранения", str(exc), parent=self.root)
+        except (ConfigurationError, OSError, UnicodeError, ValueError, OverflowError) as exc:
+            self._set_draft_error("camera.frame_interval_us", exc)
+            messagebox.showerror("Ошибка сохранения", self.status_var.get(), parent=self.root)
 
     def _check_config(self):
         try:
@@ -461,8 +706,9 @@ class SettingsWindow:
                 msg += "\nПредупреждения:\n" + "\n".join(result.warnings)
             messagebox.showinfo("Проверка", msg, parent=self.root)
             self.status_var.set("Настройки проверены. " + " ".join(result.warnings))
-        except (ConfigurationError, OSError, UnicodeError) as exc:
-            messagebox.showerror("Ошибка настроек", str(exc), parent=self.root)
+        except (ConfigurationError, OSError, UnicodeError, ValueError, OverflowError) as exc:
+            self._set_draft_error("camera.frame_interval_us", exc)
+            messagebox.showerror("Ошибка настроек", self.status_var.get(), parent=self.root)
 
     def _toggle_overlay(self):
         self.preview_overlay = self.overlay_var.get()
@@ -588,8 +834,9 @@ class SettingsWindow:
             )
             self.generation_thread.start()
 
-        except (ConfigurationError, OSError, UnicodeError) as exc:
-            messagebox.showerror("Ошибка запуска", str(exc), parent=self.root)
+        except (ConfigurationError, OSError, UnicodeError, ValueError, OverflowError) as exc:
+            self._set_draft_error("camera.frame_interval_us", exc)
+            messagebox.showerror("Ошибка запуска", self.status_var.get(), parent=self.root)
 
     def _update_progress(self, event: ProgressEvent):
         if event.total_frames > 0:
