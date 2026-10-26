@@ -29,8 +29,8 @@ class WindowSmokeTests(unittest.TestCase):
                 return buttons
 
             all_buttons = find_buttons(root)
-            self.assertIn("Новая: реалистичный", all_buttons)
-            self.assertIn("Новая: идеальный", all_buttons)
+            self.assertNotIn("Новая: реалистичный", all_buttons)
+            self.assertNotIn("Новая: идеальный", all_buttons)
             self.assertIn("Открыть…", all_buttons)
             self.assertIn("Сохранить…", all_buttons)
             self.assertIn("Проверить", all_buttons)
@@ -38,12 +38,21 @@ class WindowSmokeTests(unittest.TestCase):
             app._vars_from_config()
             self.assertEqual(app.vars["camera.width_px"].get(), "640×480")
 
-            all_buttons["Новая: идеальный"].invoke()
+            render_mode = next(
+                child for child in app.tab_droplets.winfo_children()
+                if isinstance(child, ttk.Combobox)
+                and tuple(child.cget("values")) == ("Реалистичный", "Идеальный")
+            )
+            render_mode.current(1)
+            render_mode.event_generate("<<ComboboxSelected>>")
             root.update()
-            self.assertFalse(app.vars["appearance.defocus_enabled"].get())
+            self.assertEqual(app.config.droplets.render_mode, "ideal")
+            self.assertEqual(app.vars["droplets.render_mode"].get(), "Идеальный")
 
-            all_buttons["Новая: реалистичный"].invoke()
+            render_mode.current(0)
+            render_mode.event_generate("<<ComboboxSelected>>")
             root.update()
+            self.assertEqual(app.config.droplets.render_mode, "realistic")
 
             app.vars["camera.frame_count"].set(1)
             from unittest.mock import patch

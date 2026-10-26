@@ -57,6 +57,43 @@ BACKGROUND_TONES = [("Светлый", "light"), ("Тёмный", "dark")]
 RENDER_MODES = [("Реалистичный", "realistic"), ("Идеальный", "ideal")]
 
 
+PARAMETER_HELP = {
+    "camera.width_px": "Размер кадра в пикселях. Список содержит поддерживаемые сочетания ширины и высоты.",
+    "camera.frame_count": "Сколько кадров войдёт в серию. Допустимо от 2 до 1000 кадров.",
+    "camera.scale_um_per_px": "Физический размер одного пикселя. Масштаб используется для пересчёта координат, диаметров и скорости.",
+    "camera.frame_interval_us": "Время между соседними кадрами. Это период съёмки, а не длительность экспозиции; частота в Гц является обратной величиной периода.",
+    "camera.exposure_us": "Длительность накопления света в одном кадре. Она не задаёт время между кадрами и не может быть больше межкадрового интервала.",
+    "camera.format": "Формат и разрядность экспортируемых изображений. Доступные сочетания зависят от формата.",
+    "interval_unit": "Выберите способ отображения периода между кадрами: микросекунды или частота в герцах. В конфигурации хранится период в микросекундах.",
+    "droplets.count_per_frame": "Заданное число капель в каждом кадре; учитываются и полностью перекрытые капли.",
+    "droplets.size_distribution": "Закон распределения исходных эквивалентных диаметров. Для нормального закона используются среднее и стандартное отклонение, для логнормального — медиана и геометрическое стандартное отклонение.",
+    "droplets.mean_um": "Среднее исходного нормального распределения диаметров до отбора по допустимому диапазону. Используется при выбранном нормальном законе; при логнормальном сохраняется, но не применяется.",
+    "droplets.std_um": "Стандартное отклонение исходного нормального распределения диаметров. Используется при нормальном законе; при логнормальном сохраняется, но не применяется.",
+    "droplets.median_um": "Медиана исходного логнормального распределения диаметров. Используется при логнормальном законе; при нормальном сохраняется, но не применяется.",
+    "droplets.geometric_std": "Геометрическое стандартное отклонение логнормального распределения: задаёт разброс размеров относительно медианы. Используется при логнормальном законе; при нормальном сохраняется, но не применяется.",
+    "droplets.max_diameter_um": "Верхняя граница допустимого эквивалентного диаметра капли до размытия, а не длины следа движения. Нижняя граница зависит от масштаба и равна 3 пикселям.",
+    "diameter_unit": "Выберите единицы отображения диаметров. При вводе в пикселях значение переводится в микрометры по масштабу; при смене масштаба физический диаметр сохраняется.",
+    "droplets.concentration": "Настройка влияет на то, насколько точки появления капель сгущаются к середине входной стороны кадра.",
+    "droplets.render_mode": "Идеальный режим рисует круглые капли, реалистичный — эллиптические с ориентацией и изменением формы по модели. Режим влияет на изображение; настройка расфокусировки задаётся отдельно.",
+    "motion.speed_mean_m_s": "Средний модуль скорости исходного распределения. Это заданная характеристика распределения, а не измеренное среднее по созданным каплям.",
+    "motion.speed_std_m_s": "Стандартное отклонение исходного распределения модуля скорости. Фактические значения также ограничиваются минимальной и максимальной скоростью.",
+    "motion.speed_min_m_s": "Минимальная допустимая скорость капли. Выборка выполняется в диапазоне между этим значением и максимальной скоростью.",
+    "motion.speed_max_m_s": "Максимальная допустимая скорость капли; она должна быть не меньше минимальной скорости.",
+    "motion.direction_std_deg": "Стандартное отклонение угла направления основной группы капель, в градусах. Это угловой разброс, а не средняя скорость.",
+    "motion.motion_blur_enabled": "Включает или выключает усреднение изображения по движению капель в течение выдержки. Настройка выдержки остаётся отдельной.",
+    "motion.speed_reference": "Расчётное перемещение за один межкадровый интервал: заданная средняя скорость × интервал кадров ÷ масштаб. Это пересчёт настройки, не статистика фактически сгенерированных капель.",
+    "appearance.defocus_enabled": "Включает гауссову расфокусировку формы капель. При выключении границы сигмы сохраняются, но не применяются.",
+    "appearance.blur_sigma_min_px": "Нижняя граница распределения сигмы гауссовой расфокусировки, в пикселях. Применяется, когда расфокусировка включена.",
+    "appearance.blur_sigma_max_px": "Верхняя граница распределения сигмы гауссовой расфокусировки, в пикселях; она должна быть не меньше нижней границы.",
+    "background.tone": "Задаёт светлый или тёмный однородный фон кадра.",
+    "background.noise_enabled": "Включает или выключает добавление сенсорного шума. При выключении заданная интенсивность сохраняется.",
+    "background.noise_sigma": "Стандартное отклонение сенсорного шума в нормированном диапазоне яркости от 0 до 1, а не в отсчётах PNG.",
+    "seed": "Начальное состояние генератора случайных чисел. При одинаковых настройках и окружении позволяет повторить результат; новый seed задаёт другую последовательность.",
+    "export.output_directory": "Папка, в которую будут записаны файлы экспортируемой серии. Для предпросмотра её выбирать не требуется.",
+    "preview.overlay": "Показывает в предпросмотре служебные ID, контуры, векторы и отметки границ. Этот слой предназначен для визуальной проверки и не входит в экспортируемые кадры.",
+}
+
+
 class SettingsWindow:
     def __init__(self, root: tk.Tk):
         self.root = root
@@ -86,12 +123,15 @@ class SettingsWindow:
         self.interval_unit = "us"
         self.diameter_unit = "um"
         self._preview_is_stale = False
+        self._tooltip_timer = None
+        self._tooltip_window = None
 
         self._build_ui()
         self._reset_config("realistic")
         self._update_preview()
 
         root.protocol("WM_DELETE_WINDOW", self._on_close)
+        root.bind("<Destroy>", self._on_root_destroy, add="+")
 
     def _build_ui(self):
         main_paned = ttk.PanedWindow(self.root, orient="horizontal")
@@ -128,6 +168,7 @@ class SettingsWindow:
         notebook.add(self.tab_appearance, text="Внешний вид")
         notebook.add(self.tab_background, text="Фон и шум")
         notebook.add(self.tab_random, text="Случайная генерация")
+        notebook.bind("<<NotebookTabChanged>>", lambda _event: self._hide_parameter_tooltip(), add="+")
 
         self._build_tab_general()
         self._build_tab_droplets()
@@ -138,8 +179,6 @@ class SettingsWindow:
 
         btn_frame = ttk.Frame(parent)
         btn_frame.pack(fill="x", pady=5)
-        ttk.Button(btn_frame, text="Новая: реалистичный", command=lambda: self._reset_config("realistic")).pack(side="left", padx=3)
-        ttk.Button(btn_frame, text="Новая: идеальный", command=lambda: self._reset_config("ideal")).pack(side="left", padx=3)
         ttk.Button(btn_frame, text="Открыть…", command=self._open_file).pack(side="left", padx=3)
         ttk.Button(btn_frame, text="Сохранить…", command=self._save_file).pack(side="left", padx=3)
         ttk.Button(btn_frame, text="Проверить", command=self._check_config).pack(side="left", padx=3)
@@ -153,14 +192,17 @@ class SettingsWindow:
         self.scale_label = ttk.Label(f, text="Масштаб (мкм/пиксель)")
         self.scale_label.grid(row=2, column=0, sticky="w", padx=5, pady=3)
         self._add_float(f, "camera.scale_um_per_px", "", 2, 0.1, 1000.0)
+        self._bind_parameter_help("camera.scale_um_per_px", self.scale_label)
         self.interval_label = ttk.Label(f, text="Межкадровый интервал (мкс)")
         self.interval_label.grid(row=3, column=0, sticky="w", padx=5, pady=3)
         self._add_float(f, "camera.frame_interval_us", "", 3, 0.1, 100000.0)
+        self._bind_parameter_help("camera.frame_interval_us", self.interval_label)
         self.interval_unit_var = tk.StringVar(value="мкс")
         self.interval_unit_combo = ttk.Combobox(f, textvariable=self.interval_unit_var,
             values=("мкс", "Гц"), state="readonly", width=7)
         self.interval_unit_combo.grid(row=3, column=2, padx=4)
         self.interval_unit_combo.bind("<<ComboboxSelected>>", self._change_interval_unit)
+        self._bind_parameter_help("interval_unit", self.interval_unit_combo)
         self._add_float(f, "camera.exposure_us", "Выдержка (мкс)", 4, 0.1, 100000.0)
         self._add_combobox(f, "camera.format", "Формат и разрядность", 5,
                           [label for label, _, _ in FORMAT_BITDEPTH],
@@ -183,6 +225,7 @@ class SettingsWindow:
             values=("мкм", "пикс"), state="readonly", width=7)
         self.diameter_unit_combo.grid(row=9, column=2, padx=4)
         self.diameter_unit_combo.bind("<<ComboboxSelected>>", self._change_diameter_unit)
+        self._bind_parameter_help("diameter_unit", self.diameter_unit_combo)
         self.diameter_help = ttk.Label(f, text="Эквивалентный диаметр до размытия. При смене масштаба размеры в мкм сохраняются.", wraplength=460)
         self.diameter_help.grid(row=10, column=0, columnspan=3, sticky="w", padx=5, pady=3)
         self._add_combobox(f, "droplets.concentration", "Концентрация", 7,
@@ -196,8 +239,11 @@ class SettingsWindow:
         f = self.tab_motion
         self._add_float(f, "motion.speed_mean_m_s", "Средняя скорость (м/с)", 0, 0.1, 100.0)
         self.speed_pixels_var = tk.StringVar(value="—")
-        ttk.Label(f, text="Средняя скорость (пикс/кадр)").grid(row=6, column=0, sticky="w", padx=5, pady=3)
-        ttk.Label(f, textvariable=self.speed_pixels_var).grid(row=6, column=1, sticky="w", padx=5, pady=3)
+        speed_reference_label = ttk.Label(f, text="Средняя скорость (пикс/кадр)")
+        speed_reference_label.grid(row=6, column=0, sticky="w", padx=5, pady=3)
+        speed_reference_value = ttk.Label(f, textvariable=self.speed_pixels_var)
+        speed_reference_value.grid(row=6, column=1, sticky="w", padx=5, pady=3)
+        self._bind_parameter_help("motion.speed_reference", speed_reference_label, speed_reference_value)
         ttk.Label(f, text="Пересчёт заданной средней скорости").grid(row=7, column=0, columnspan=2, sticky="w", padx=5)
         self._add_float(f, "motion.speed_std_m_s", "Стд. отклонение скорости (м/с)", 1, 0.0, 50.0)
         self._add_float(f, "motion.speed_min_m_s", "Мин. скорость (м/с)", 2, 0.1, 100.0)
@@ -239,8 +285,11 @@ class SettingsWindow:
         overlay_frame = ttk.Frame(preview_frame)
         overlay_frame.pack(fill="x", pady=5)
         self.overlay_var = tk.BooleanVar(value=False)
-        ttk.Checkbutton(overlay_frame, text="Показать служебный слой (ID, контуры, векторы, границы)",
-                       variable=self.overlay_var, command=self._toggle_overlay).pack(anchor="w")
+        self.overlay_checkbutton = ttk.Checkbutton(
+            overlay_frame, text="Показать служебный слой (ID, контуры, векторы, границы)",
+            variable=self.overlay_var, command=self._toggle_overlay)
+        self.overlay_checkbutton.pack(anchor="w")
+        self._bind_parameter_help("preview.overlay", self.overlay_checkbutton)
 
         export_frame = ttk.LabelFrame(top_frame, text="Экспорт", padding=5)
         export_frame.pack(fill="x", pady=5)
@@ -252,6 +301,7 @@ class SettingsWindow:
         self.vars["export.output_directory"] = self.export_dir_var
         self.export_dir_entry = ttk.Entry(dir_frame, textvariable=self.export_dir_var)
         self.export_dir_entry.pack(side="left", fill="x", expand=True, padx=5)
+        self._bind_parameter_help("export.output_directory", self.export_dir_entry)
         ttk.Button(dir_frame, text="Обзор…", command=self._choose_export_dir).pack(side="left")
 
         progress_frame = ttk.Frame(export_frame)
@@ -278,9 +328,11 @@ class SettingsWindow:
     def _add_int(self, parent, path, label, row, min_val, max_val):
         var = tk.IntVar()
         self.vars[path] = var
-        ttk.Label(parent, text=label).grid(row=row, column=0, sticky="w", padx=5, pady=3)
+        label_widget = ttk.Label(parent, text=label)
+        label_widget.grid(row=row, column=0, sticky="w", padx=5, pady=3)
         spin = ttk.Spinbox(parent, from_=min_val, to=max_val, textvariable=var, width=20)
         spin.grid(row=row, column=1, sticky="ew", padx=5, pady=3)
+        self._bind_parameter_help(path, label_widget, spin)
         var.trace_add("write", lambda *_: self._on_field_change(path))
         parent.columnconfigure(1, weight=1)
 
@@ -296,16 +348,19 @@ class SettingsWindow:
         self.widgets[path] = spin
         self.labels[path] = label_widget
         spin.grid(row=row, column=1, sticky="ew", padx=5, pady=3)
+        self._bind_parameter_help(path, label_widget if label else None, spin)
         var.trace_add("write", lambda *_: self._on_field_change(path))
         parent.columnconfigure(1, weight=1)
 
     def _add_combobox(self, parent, path, label, row, values, getter=None, path2=None):
         var = tk.StringVar()
         self.vars[path] = var
-        ttk.Label(parent, text=label).grid(row=row, column=0, sticky="w", padx=5, pady=3)
+        label_widget = ttk.Label(parent, text=label)
+        label_widget.grid(row=row, column=0, sticky="w", padx=5, pady=3)
         combo = ttk.Combobox(parent, textvariable=var, values=values, state="readonly", width=18)
         combo.grid(row=row, column=1, sticky="ew", padx=5, pady=3)
         combo.current(0)
+        self._bind_parameter_help(path, label_widget, combo)
 
         if path == "camera.width_px" and path2 == "camera.height_px":
             combo.bind("<<ComboboxSelected>>", lambda e: self._on_resolution_change())
@@ -318,8 +373,102 @@ class SettingsWindow:
     def _add_checkbox(self, parent, path, label, row):
         var = tk.BooleanVar()
         self.vars[path] = var
-        ttk.Checkbutton(parent, text=label, variable=var,
-                       command=lambda: self._on_field_change(path)).grid(row=row, column=0, columnspan=2, sticky="w", padx=5, pady=3)
+        checkbutton = ttk.Checkbutton(parent, text=label, variable=var,
+                       command=lambda: self._on_field_change(path))
+        checkbutton.grid(row=row, column=0, columnspan=2, sticky="w", padx=5, pady=3)
+        self._bind_parameter_help(path, checkbutton)
+
+    def _bind_parameter_help(self, key: str, *widgets: tk.Widget | None):
+        for widget in widgets:
+            if widget is None:
+                continue
+            widget.bind("<Enter>", lambda event, help_key=key: self._schedule_parameter_tooltip(event, help_key), add="+")
+            widget.bind("<Leave>", lambda _event: self._hide_parameter_tooltip(), add="+")
+
+    def _parameter_help_text(self, key: str) -> str:
+        text = PARAMETER_HELP.get(key)
+        if text is None:
+            return ""
+        if key == "camera.frame_interval_us":
+            unit = "частота кадров в герцах" if self.interval_unit == "hz" else "период в микросекундах"
+            text += f" Сейчас поле показывает {unit}."
+        elif key == "interval_unit":
+            selected = "герцы" if self.interval_unit == "hz" else "микросекунды"
+            text += f" Сейчас выбраны {selected}."
+        elif key == "diameter_unit":
+            selected = "пиксели" if self.diameter_unit == "px" else "микрометры"
+            text += f" Сейчас выбраны {selected}."
+        elif key in DIAMETER_PATHS:
+            unit = "пикселях" if self.diameter_unit == "px" else "микрометрах"
+            text += f" Сейчас значения отображаются в {unit}; это диаметр капли, не длина следа движения."
+        elif key == "droplets.render_mode" and self._draft_data:
+            mode = self._draft_data["droplets"]["render_mode"]
+            text += f" Сейчас выбран режим: {'реалистичный' if mode == 'realistic' else 'идеальный'}."
+        elif key == "preview.overlay":
+            text += " Включение переключателя не влияет на модель капель или данные экспорта."
+        return text
+
+    def _schedule_parameter_tooltip(self, event, key: str):
+        self._hide_parameter_tooltip()
+        if not PARAMETER_HELP.get(key):
+            return
+        try:
+            self._tooltip_timer = self.root.after(
+                450, lambda: self._show_parameter_tooltip(event.widget, key))
+        except tk.TclError:
+            self._tooltip_timer = None
+
+    def _show_parameter_tooltip(self, widget: tk.Widget, key: str):
+        self._tooltip_timer = None
+        if not self._alive or not self.root.winfo_exists() or not widget.winfo_exists():
+            return
+        text = self._parameter_help_text(key)
+        if not text:
+            return
+        try:
+            tooltip = tk.Toplevel(self.root)
+            tooltip.wm_overrideredirect(True)
+            label = tk.Label(tooltip, text=text, justify="left", anchor="w", wraplength=360,
+                             background="#fffbe6", foreground="#202020", relief="solid", borderwidth=1,
+                             padx=8, pady=6)
+            label.pack()
+            tooltip.update_idletasks()
+            width, height = tooltip.winfo_reqwidth(), tooltip.winfo_reqheight()
+            screen_width, screen_height = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
+            target_x, target_y = widget.winfo_rootx(), widget.winfo_rooty()
+            root_x = self.root.winfo_rootx()
+            panel_split = root_x + self.root.winfo_width() // 2
+            if target_x < panel_split:
+                # Keep field help clear of the adjacent input controls.
+                x, y = panel_split + 10, target_y
+            else:
+                # The right panel has no editable fields beside its labels.
+                x, y = target_x, target_y - height - 8
+            x = max(0, min(x, screen_width - width))
+            y = max(0, min(y, screen_height - height))
+            tooltip.geometry(f"+{x}+{y}")
+            self._tooltip_window = tooltip
+        except tk.TclError:
+            self._tooltip_window = None
+
+    def _hide_parameter_tooltip(self):
+        if self._tooltip_timer is not None:
+            try:
+                self.root.after_cancel(self._tooltip_timer)
+            except tk.TclError:
+                pass
+            self._tooltip_timer = None
+        if self._tooltip_window is not None:
+            try:
+                if self._tooltip_window.winfo_exists():
+                    self._tooltip_window.destroy()
+            except tk.TclError:
+                pass
+            self._tooltip_window = None
+
+    def _on_root_destroy(self, event):
+        if event.widget is self.root:
+            self._hide_parameter_tooltip()
 
     def _on_field_change(self, path: str):
         if self._loading_vars:
@@ -716,6 +865,7 @@ class SettingsWindow:
 
     def _on_close(self):
         self._alive = False
+        self._hide_parameter_tooltip()
         self.root.destroy()
 
     def _update_preview(self):
