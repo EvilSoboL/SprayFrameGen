@@ -2,6 +2,7 @@
 
 import copy
 import json
+import math
 import threading
 import time
 import tkinter as tk
@@ -12,7 +13,7 @@ from tkinter.scrolledtext import ScrolledText
 from typing import Optional
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageTk
+from PIL import Image, ImageDraw, ImageFont, ImageTk
 
 from .. import __version__
 from . import InterfaceError
@@ -290,6 +291,28 @@ class SettingsWindow:
             variable=self.overlay_var, command=self._toggle_overlay)
         self.overlay_checkbutton.pack(anchor="w")
         self._bind_parameter_help("preview.overlay", self.overlay_checkbutton)
+
+        self.overlay_legend = ttk.Frame(overlay_frame)
+        legend_items = (
+            ((255, 255, 0), "ID и контур — геометрия капли до размытия"),
+            ((0, 255, 255), "Стрелка — перемещение за межкадровый интервал (пикс/кадр)"),
+            ((255, 0, 0), "Рамка — граничная капля (часть контура за кадром)"),
+        )
+        for color, description in legend_items:
+            item_frame = ttk.Frame(self.overlay_legend)
+            item_frame.pack(fill="x", anchor="w")
+            swatch = tk.Canvas(item_frame, width=18, height=14,
+                               highlightthickness=0, takefocus=False)
+            swatch.pack(side="left", padx=(0, 4), pady=1)
+            swatch.create_line(2, 7, 16, 7, fill="#{:02x}{:02x}{:02x}".format(*color), width=3)
+            ttk.Label(item_frame, text=description, wraplength=420,
+                      justify="left").pack(side="left", fill="x", expand=True)
+        ttk.Label(
+            self.overlay_legend,
+            text="Нулевая скорость — без стрелки; короче 1 экранного пикселя — точка; "
+                 "за краем стрелка обрезается. Служебный слой не экспортируется.",
+            wraplength=420, justify="left",
+        ).pack(anchor="w", pady=(2, 0))
 
         export_frame = ttk.LabelFrame(top_frame, text="Экспорт", padding=5)
         export_frame.pack(fill="x", pady=5)
@@ -861,6 +884,10 @@ class SettingsWindow:
 
     def _toggle_overlay(self):
         self.preview_overlay = self.overlay_var.get()
+        if self.preview_overlay:
+            self.overlay_legend.pack(fill="x", anchor="w", padx=(18, 0), pady=(2, 0))
+        else:
+            self.overlay_legend.pack_forget()
         self._update_preview()
 
     def _on_close(self):
@@ -901,10 +928,9 @@ class SettingsWindow:
 
             img = Image.fromarray(img_array, mode="L")
 
+            img.thumbnail((canvas_w - 10, canvas_h - 10), Image.Resampling.LANCZOS)
             if self.preview_overlay:
                 img = self._draw_overlay(img, frame, fresh.camera)
-
-            img.thumbnail((canvas_w - 10, canvas_h - 10), Image.Resampling.LANCZOS)
             self.preview_tk = ImageTk.PhotoImage(img)
             self.preview_canvas.delete("all")
             self.preview_canvas.create_image(canvas_w // 2, canvas_h // 2, image=self.preview_tk, anchor="center")
@@ -913,38 +939,85 @@ class SettingsWindow:
             self.status_var.set(f"Ошибка предпросмотра: {exc}")
 
     def _draw_overlay(self, img: Image.Image, frame, camera) -> Image.Image:
-        overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
-        draw = ImageDraw.Draw(overlay)
-
+        """Добавляет цветные диагностические обозначения только к экранному кадру."""
+        result = img.convert("RGB")
+        draw = ImageDraw.Draw(result)
         scale_x = img.width / camera.width_px
         scale_y = img.height / camera.height_px
+        yellow = (255, 255, 0)
+        cyan = (0, 255, 255)
+        red = (255, 0, 0)
+        font = ImageFont.load_default(size=12)
 
         for state in frame.droplets:
             d = state.droplet
-            x = d.center_x_px * scale_x
-            y = d.center_y_px * scale_y
-            a = state.semi_major_px * scale_x
-            b = state.semi_minor_px * scale_y
-            angle = d.angle_deg
+            cx, cy = d.center_x_px, d.center_y_px
+            a, b = state.semi_major_px, state.semi_minor_px
+            theta = math.radians(d.angle_deg)
+            cosine, sine = math.cos(theta), math.sin(theta)
 
-            if angle != 0:
-                bbox = [x - a, y - b, x + a, y + b]
-                draw.ellipse(bbox, outline=(255, 255, 0, 200), width=2)
+            # Bound the chord error after independent X/Y preview scaling.
+            max_radius = max(a, b) * max(scale_x, scale_y)
+            if max_radius <= 0.5:
+                segments = 12
             else:
-                draw.ellipse([x - a, y - b, x + a, y + b], outline=(255, 255, 0, 200), width=2)
+                angle_step = math.acos(max(-1.0, 1.0 - 0.5 / max_radius))
+                segments = max(12, math.ceil(math.pi / angle_step))
+            contour = []
+            for index in range(segments + 1):
+                angle = 2 * math.pi * index / segments
+                px = cx + a * math.cos(angle) * cosine - b * math.sin(angle) * sine
+                py = cy + a * math.cos(angle) * sine + b * math.sin(angle) * cosine
+                contour.append((px * scale_x, py * scale_y))
+            draw.line(contour, fill=yellow, width=2)
 
-            draw.text((x + a + 2, y - b - 2), str(d.droplet_id), fill=(255, 255, 0, 255))
+            half_width = math.hypot(a * cosine, b * sine)
+            half_height = math.hypot(a * sine, b * cosine)
+            left, right = (cx - half_width) * scale_x, (cx + half_width) * scale_x
+            top, bottom = (cy - half_height) * scale_y, (cy + half_height) * scale_y
 
-            if d.vx_m_s != 0 or d.vy_m_s != 0:
-                dx = d.vx_m_s * camera.exposure_us / camera.scale_um_per_px * scale_x
-                dy = d.vy_m_s * camera.exposure_us / camera.scale_um_per_px * scale_y
-                draw.line([x, y, x + dx, y + dy], fill=(0, 255, 255, 200), width=2, arrow="last")
+            label = str(d.droplet_id)
+            text_box = draw.textbbox((0, 0), label, font=font, stroke_width=2)
+            text_width, text_height = text_box[2] - text_box[0], text_box[3] - text_box[1]
+            label_x = right + 3
+            label_y = top - text_height - 4
+            label_x = min(max(0, label_x), max(0, img.width - text_width))
+            label_y = min(max(0, label_y), max(0, img.height - text_height))
+            draw.text((label_x, label_y), label, font=font, fill=yellow,
+                      stroke_width=2, stroke_fill=(0, 0, 0))
 
             if state.border:
-                draw.rectangle([x - a - 2, y - b - 2, x + a + 2, y + b + 2], outline=(255, 0, 0, 200), width=2)
+                draw.rectangle((left - 2, top - 2, right + 2, bottom + 2), outline=red, width=2)
 
-        base = img.convert("RGBA")
-        return Image.alpha_composite(base, overlay).convert("L")
+            dx = d.vx_m_s * camera.frame_interval_us / camera.scale_um_per_px
+            dy = d.vy_m_s * camera.frame_interval_us / camera.scale_um_per_px
+            start = (cx * scale_x, cy * scale_y)
+            end = ((cx + dx) * scale_x, (cy + dy) * scale_y)
+            length = math.hypot(end[0] - start[0], end[1] - start[1])
+            if length == 0:
+                continue
+            if length < 1:
+                px, py = end
+                draw.ellipse((px - 1, py - 1, px + 1, py + 1), fill=cyan)
+                continue
+
+            ux = (end[0] - start[0]) / length
+            uy = (end[1] - start[1]) / length
+            head_length = min(6.0, length / 3)
+            half_head_width = min(3.0, length / 6)
+            base_x, base_y = end[0] - ux * head_length, end[1] - uy * head_length
+            perpendicular = (-uy * half_head_width, ux * half_head_width)
+            triangle = (
+                end,
+                (base_x + perpendicular[0], base_y + perpendicular[1]),
+                (base_x - perpendicular[0], base_y - perpendicular[1]),
+            )
+            draw.line((start, end), fill=cyan, width=2)
+            # Pillow clips the triangle to the image; don't move an external tip to the edge.
+            if 0 <= end[0] < img.width and 0 <= end[1] < img.height:
+                draw.polygon(triangle, fill=cyan)
+
+        return result
 
     def _start_generation(self):
         try:

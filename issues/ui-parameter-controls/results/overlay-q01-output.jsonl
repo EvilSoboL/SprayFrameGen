@@ -1,0 +1,12 @@
+{"file": "sprayframegen/ui/app.py", "sha256": "86b6d8789dc415fefe71e17548285b7de8e0fbc91206f567747f2d3a14b4ea13"}
+{"file": "tests/test_preview_overlay.py", "sha256": "783c3e8136f3f121ff60ed42f984b167104c519b5689347b7816ba4b390564b4"}
+{"file": "tests/ui_smoke.py", "sha256": "0821e029e3ff7601aa72847ee4f2cc2956587a5a49c258addd3263383062d7f5"}
+{"file": "issues/ui-parameter-controls/results/overlay-contract.md", "sha256": "84663e03d971613edd73f923de40125de54d5b7c24ddb7f17daa7ccfc46bb382"}
+{"contour_cases": 10, "all_vertices_and_chord_errors": "PASS"}
+{"vector_cases": 10, "length_direction_zero_short_long_and_exposure_independence": "PASS"}
+{"mode": "ideal", "format": "png", "bits": 8, "effects": "all enabled", "real_toggle_and_exported_pixels_and_csv_and_model": "PASS"}
+{"mode": "ideal", "format": "png", "bits": 16, "effects": "all enabled", "real_toggle_and_exported_pixels_and_csv_and_model": "PASS"}
+{"mode": "ideal", "format": "tiff", "bits": 16, "effects": "all enabled", "real_toggle_and_exported_pixels_and_csv_and_model": "PASS"}
+{"mode": "realistic", "format": "png", "bits": 8, "effects": "all enabled", "real_toggle_and_exported_pixels_and_csv_and_model": "PASS"}
+{"mode": "realistic", "format": "png", "bits": 16, "effects": "all enabled", "real_toggle_and_exported_pixels_and_csv_and_model": "PASS"}
+{"mode": "realistic", "format": "tiff", "bits": 16, "effects": "all enabled", "real_toggle_and_exported_pixels_and_csv_and_model": "PASS"}

@@ -9,7 +9,11 @@ from tempfile import TemporaryDirectory
 from tkinter import ttk
 from unittest.mock import patch
 
+import numpy as np
+from PIL import ImageTk
+
 from sprayframegen.configuration import dumps, loads
+from sprayframegen.configuration import update_configuration
 from sprayframegen.ui.app import SettingsWindow
 
 
@@ -73,6 +77,70 @@ class WindowSmokeTests(unittest.TestCase):
             app._update_preview()
             root.update()
             self.assertIsNotNone(app.preview_tk)
+        finally:
+            root.destroy()
+
+    def test_overlay_toggle_repaints_clean_and_color_previews(self):
+        root = tk.Tk()
+        try:
+            root.geometry("1000x700")
+            app = SettingsWindow(root)
+            root.update()
+            legend_text = " ".join(
+                child.cget("text") for child in app.overlay_legend.winfo_children()
+                for child in child.winfo_children() if isinstance(child, ttk.Label)
+            ) + " " + " ".join(
+                child.cget("text") for child in app.overlay_legend.winfo_children()
+                if isinstance(child, ttk.Label)
+            )
+            self.assertIn("межкадровый интервал", legend_text)
+            self.assertIn("не экспортируется", legend_text)
+            swatch_colors = [
+                child.winfo_children()[0].itemcget(1, "fill")
+                for child in app.overlay_legend.winfo_children()
+                if isinstance(child, ttk.Frame)
+            ]
+            self.assertEqual(swatch_colors, ["#ffff00", "#00ffff", "#ff0000"])
+
+            for mode in ("realistic", "ideal"):
+                for tone in ("light", "dark"):
+                    for bit_depth in (8, 16):
+                        with self.subTest(mode=mode, tone=tone, bit_depth=bit_depth):
+                            app.config = update_configuration(app.config, {
+                                "droplets.render_mode": mode,
+                                "background.tone": tone,
+                                "camera.bit_depth": bit_depth,
+                                "camera.frame_count": 2,
+                                "droplets.count_per_frame": 10,
+                                "seed": 42,
+                            }).configuration
+                            app._vars_from_config()
+                            app.overlay_var.set(False)
+                            app._toggle_overlay()
+                            root.update()
+                            clean = np.asarray(ImageTk.getimage(app.preview_tk).convert("RGB")).copy()
+                            baseline_items = app.preview_canvas.find_all()
+                            self.assertEqual(len(baseline_items), 1)
+                            self.assertEqual(app.overlay_legend.winfo_manager(), "")
+
+                            for _ in range(3):
+                                app.status_var.set("Готово")
+                                app.overlay_checkbutton.invoke()
+                                root.update()
+                                self.assertTrue(app.preview_overlay)
+                                self.assertNotIn("Ошибка предпросмотра", app.status_var.get())
+                                self.assertEqual(app.overlay_legend.winfo_manager(), "pack")
+                                self.assertEqual(len(app.preview_canvas.find_all()), 1)
+                                overlaid = np.asarray(ImageTk.getimage(app.preview_tk).convert("RGB"))
+                                self.assertFalse(np.array_equal(clean, overlaid))
+
+                                app.overlay_checkbutton.invoke()
+                                root.update()
+                                self.assertFalse(app.preview_overlay)
+                                self.assertEqual(app.overlay_legend.winfo_manager(), "")
+                                self.assertEqual(len(app.preview_canvas.find_all()), 1)
+                                restored = np.asarray(ImageTk.getimage(app.preview_tk).convert("RGB"))
+                                np.testing.assert_array_equal(restored, clean)
         finally:
             root.destroy()
 

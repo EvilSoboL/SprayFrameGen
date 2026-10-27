@@ -1,0 +1,24 @@
+{"python": "3.14.0", "numpy": "2.3.5", "pillow": "12.0.0"}
+{"file": "sprayframegen/ui/app.py", "sha256": "45b965cce2333c7f459353df56b7d6fb65c38a9ee7a1695f7295c52f323265c9"}
+{"file": "sprayframegen/model/__init__.py", "sha256": "30e4b96f1a797c3143dc7c3cab6e75828a5bdba9d75e918b9d74f0f668060a5f"}
+{"file": "sprayframegen/generation/sequence.py", "sha256": "445041c361c9a15452265b8755179eb6850f192cb464cf38972fdb9507ffe336"}
+{"file": "sprayframegen/geometry/projections.py", "sha256": "89d0e3e48f293a93261019e3ba07ed098d3134a97838e8e80596099d4d6e5123"}
+{"file": "sprayframegen/export/series.py", "sha256": "c77ed1fe08e8c193f5ce10b1a409b28c57637e34928d31e231b7a4ee835885a6"}
+{"file": "sprayframegen/generation/controller.py", "sha256": "0434a1d977f20b1ce17c197255628759ca6365884f9cbe409dcc0e223f2c59bf"}
+{"file": "sprayframegen/render/optical.py", "sha256": "a50611b59eee122d20a521d13d9a701486bcf9c408346fcb9faa175a860d5029"}
+{"file": "sprayframegen/ui/parameter_units.py", "sha256": "992e4ca9acfd30246376661f64ddc3052ba8584f734730e599078283035ca956"}
+{"file": "tests/ui_smoke.py", "sha256": "d4987fc3fc3e7bd4d9002d6c218595e745de6f46aa9b0154cc1e8480994da2f7"}
+{"pillow_arrow": "ImageDraw.line() got an unexpected keyword argument 'arrow'"}
+{"draw_case": "nonzero", "error": "TypeError: ImageDraw.line() got an unexpected keyword argument 'arrow'", "input_unchanged": true}
+{"draw_case": "zero", "mode": "L", "size": [640, 480], "input_unchanged": true}
+{"vector_input": [2, 0, 100, 10], "displacement": [20.0, 0.0]}
+{"vector_input": [2, -1, 100, 10], "displacement": [20.0, -10.0]}
+{"vector_input": [2, 0, 200, 10], "displacement": [40.0, 0.0]}
+{"vector_input": [2, 0, 100, 20], "displacement": [10.0, 0.0]}
+{"vector_input": [0, 0, 100, 10], "displacement": [0.0, 0.0]}
+{"vector_input": [0.05, 0, 100, 10], "displacement": [0.5, 0.0]}
+{"vector_input": [100, 0, 100, 10], "displacement": [1000.0, 0.0]}
+{"ellipse_case": "model at x=100, q_left=1.35, r=10, angle=45", "a": 11.381179640090037, "b": 8.78643542781378, "bounds": [89.83307574713126, 89.83307574713126, 110.16692425286874, 110.16692425286874]}
+{"tcl_tk": "8.6.15"}
+{"mode": "ideal", "toggles": [{"enabled": true, "status": "Ошибка предпросмотра: ImageDraw.line() got an unexpected keyword argument 'arrow'"}, {"enabled": true, "status": "Ошибка предпросмотра: ImageDraw.line() got an unexpected keyword argument 'arrow'"}, {"enabled": true, "status": "Ошибка предпросмотра: ImageDraw.line() got an unexpected keyword argument 'arrow'"}], "config_equal": true, "frames_equal": true, "exported_pixels_equal": true, "exports_match_clean_renderer": true, "csv_equal": true, "note": "Изоляция исходного кода при ошибке включения; AC01 и приёмка T01 не подтверждены"}
+{"mode": "realistic", "toggles": [{"enabled": true, "status": "Ошибка предпросмотра: ImageDraw.line() got an unexpected keyword argument 'arrow'"}, {"enabled": true, "status": "Ошибка предпросмотра: ImageDraw.line() got an unexpected keyword argument 'arrow'"}, {"enabled": true, "status": "Ошибка предпросмотра: ImageDraw.line() got an unexpected keyword argument 'arrow'"}], "config_equal": true, "frames_equal": true, "exported_pixels_equal": true, "exports_match_clean_renderer": true, "csv_equal": true, "note": "Изоляция исходного кода при ошибке включения; AC01 и приёмка T01 не подтверждены"}
