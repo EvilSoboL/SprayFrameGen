@@ -14,10 +14,140 @@ from PIL import ImageTk
 
 from sprayframegen.configuration import dumps, loads
 from sprayframegen.configuration import update_configuration
-from sprayframegen.ui.app import SettingsWindow
+from sprayframegen.ui.app import PARAMETER_HELP, SettingsWindow
 
 
 class WindowSmokeTests(unittest.TestCase):
+    def test_parameter_help_coverage_hover_focus_and_screen_bounds(self):
+        root = tk.Tk()
+        bindings = {}
+        original_bind = SettingsWindow._bind_parameter_help
+
+        def record(app, key, *widgets):
+            bindings.setdefault(key, []).extend(widget for widget in widgets if widget is not None)
+            return original_bind(app, key, *widgets)
+
+        def wait_for_tooltip():
+            ready = tk.BooleanVar(root, value=False)
+            root.after(500, lambda: ready.set(True))
+            root.wait_variable(ready)
+
+        try:
+            root.geometry("1000x700")
+            with patch.object(SettingsWindow, "_bind_parameter_help", record):
+                app = SettingsWindow(root)
+            root.update()
+            expected = set(app.vars) | {"interval_unit", "diameter_unit", "motion.speed_reference", "preview.overlay"}
+            self.assertEqual(set(bindings), expected)
+            self.assertEqual(set(PARAMETER_HELP), expected)
+            root.geometry(f"+{max(0, root.winfo_screenwidth()-1000)}+{max(0, root.winfo_screenheight()-730)}")
+            root.update()
+
+            for key, widgets in bindings.items():
+                with self.subTest(key=key):
+                    widget = widgets[0]
+                    page = widget
+                    while page.master is not None and not isinstance(page.master, ttk.Notebook):
+                        page = page.master
+                    if isinstance(page.master, ttk.Notebook):
+                        page.master.select(page)
+                    root.update()
+                    widget.focus_force()
+                    root.update()
+                    focused = root.focus_get()
+                    widget.event_generate("<Enter>")
+                    wait_for_tooltip()
+                    popup = app._tooltip_window
+                    self.assertIsNotNone(popup)
+                    self.assertTrue(popup.winfo_exists())
+                    self.assertTrue(popup.winfo_viewable())
+                    self.assertEqual(root.focus_get(), focused)
+                    self.assertEqual(popup.winfo_children()[0].cget("text"), app._parameter_help_text(key))
+                    self.assertRegex(app._parameter_help_text(key), "[А-Яа-я]")
+                    self.assertGreaterEqual(popup.winfo_rootx(), 0)
+                    self.assertGreaterEqual(popup.winfo_rooty(), 0)
+                    self.assertLessEqual(popup.winfo_rootx()+popup.winfo_width(), root.winfo_screenwidth())
+                    self.assertLessEqual(popup.winfo_rooty()+popup.winfo_height(), root.winfo_screenheight())
+                    widget.event_generate("<Leave>")
+                    root.update()
+                    self.assertIsNone(app._tooltip_window)
+                    self.assertFalse(popup.winfo_exists())
+
+            widget = bindings["camera.frame_count"][0]
+            notebook = app.tab_general.master
+            notebook.select(app.tab_general)
+            root.update()
+            widget.event_generate("<Enter>")
+            widget.event_generate("<Leave>")
+            wait_for_tooltip()
+            self.assertIsNone(app._tooltip_window)
+            self.assertIsNone(app._tooltip_timer)
+            widget.event_generate("<Enter>")
+            notebook.select(app.tab_droplets)
+            wait_for_tooltip()
+            self.assertIsNone(app._tooltip_window)
+            notebook.select(app.tab_general)
+            root.update()
+            widget.event_generate("<Enter>")
+            wait_for_tooltip()
+            self.assertIsNotNone(app._tooltip_window)
+            notebook.select(app.tab_droplets)
+            root.update()
+            self.assertIsNone(app._tooltip_window)
+            notebook.select(app.tab_general)
+            root.update()
+            widget.event_generate("<Enter>")
+            wait_for_tooltip()
+            popup = app._tooltip_window
+            self.assertIsNotNone(popup)
+            root.geometry(f"+{root.winfo_x()-1}+{root.winfo_y()-1}")
+            root.update()
+            self.assertIsNone(app._tooltip_window)
+            self.assertFalse(popup.winfo_exists())
+            widget.event_generate("<Enter>")
+            wait_for_tooltip()
+            self.assertIsNotNone(app._tooltip_window)
+            root.geometry("1001x701")
+            root.update()
+            self.assertIsNone(app._tooltip_window)
+            widget.event_generate("<Enter>")
+            wait_for_tooltip()
+            self.assertIsNotNone(app._tooltip_window)
+            app._on_close()
+            self.assertIsNone(app._tooltip_window)
+            self.assertIsNone(app._tooltip_timer)
+        finally:
+            try:
+                root.destroy()
+            except tk.TclError:
+                pass
+
+    def test_parameter_help_follows_units_and_distribution(self):
+        root = tk.Tk()
+        try:
+            app = SettingsWindow(root)
+            root.update()
+            initial_interval = app._parameter_help_text("camera.frame_interval_us")
+            initial_diameter = app._parameter_help_text("droplets.median_um")
+            app.interval_unit_var.set("Гц")
+            app._change_interval_unit()
+            app.diameter_unit_var.set("пикс")
+            app._change_diameter_unit()
+            self.assertNotEqual(initial_interval, app._parameter_help_text("camera.frame_interval_us"))
+            self.assertNotEqual(initial_diameter, app._parameter_help_text("droplets.median_um"))
+            normal_before = app._parameter_help_text("droplets.std_um")
+            lognormal_before = app._parameter_help_text("droplets.geometric_std")
+            app.vars["droplets.size_distribution"].set("Нормальное")
+            app._on_field_change("droplets.size_distribution")
+            self.assertNotEqual(normal_before, app._parameter_help_text("droplets.std_um"))
+            self.assertNotEqual(lognormal_before, app._parameter_help_text("droplets.geometric_std"))
+            realistic_before = app._parameter_help_text("droplets.render_mode")
+            app.vars["droplets.render_mode"].set("Идеальный")
+            app._on_field_change("droplets.render_mode")
+            self.assertNotEqual(realistic_before, app._parameter_help_text("droplets.render_mode"))
+        finally:
+            root.destroy()
+
     def test_window_creation_and_basic_widgets(self):
         root = tk.Tk()
         try:
